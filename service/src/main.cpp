@@ -14,8 +14,7 @@ int main(int argc, char** argv) {
 
 	server.SetOnReceive(onReceive);
 
-	router.AddRoute("POST", "/register", Register);
-	router.AddRoute("POST", "/login", Login);
+	router.AddRoute("GET", "/user/get", GetUser);
 
-	server.Listen("0.0.0.0", 8000, std::thread::hardware_concurrency());
+	server.Listen("0.0.0.0", 8001	, std::thread::hardware_concurrency());
 }

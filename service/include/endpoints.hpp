@@ -11,6 +11,8 @@
 #include <vector>
 #include <fstream>
 #include <unordered_map>
+#include <cstdlib>
+#include <variant>
 
 using returnType = std::tuple<CppHttp::Net::ResponseType, std::string, std::optional<std::vector<std::string>>>;
 using json = nlohmann::json;
@@ -22,6 +24,11 @@ struct User {
 	std::string salt;
 	std::string firstName;
 	std::string lastName;
+};
+
+struct TokenError {
+    CppHttp::Net::ResponseType type;
+    std::string message;
 };
 
 namespace soci
@@ -54,6 +61,10 @@ namespace soci
     };
 }
 
-returnType Register(CppHttp::Net::Request req);
+std::variant<TokenError, json> ValidateToken(std::string& token);
 
-returnType Login(CppHttp::Net::Request req);
+returnType GetUser(CppHttp::Net::Request req);
+
+returnType UpdateUser(CppHttp::Net::Request req);
+
+returnType DeleteUser(CppHttp::Net::Request req);

@@ -68,6 +68,7 @@ std::unordered_map<std::string, std::string> CppHttp::Utils::GetHeaders(std::str
         if (matched.to_string() != "") {
             std::string header = matched.get<1>().to_string();
             std::string value = matched.get<2>().to_string();
+            value.pop_back();
 
             headers[header] = value;
         }

@@ -17,6 +17,6 @@ RUN cmake --build build
 RUN mkdir /app
 RUN cp -r build/* /app
 
-EXPOSE 8000
+EXPOSE 8001
 
-CMD [ "stdbuf", "-oL", "./build/auth" ]
+CMD [ "stdbuf", "-oL", "./build/user" ]
