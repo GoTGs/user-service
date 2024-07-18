@@ -29,4 +29,10 @@ public:
 	soci::session* GetSession() {
 		return &sql;
 	}
+
+	void Close() {
+		sql.close();
+		delete databaseInstance;
+		databaseInstance = nullptr;
+	}
 };

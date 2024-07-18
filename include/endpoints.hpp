@@ -66,6 +66,8 @@ namespace soci
 
 std::variant<TokenError, json> ValidateToken(std::string& token);
 
+returnType GetUsers(CppHttp::Net::Request req);
+
 returnType GetUser(CppHttp::Net::Request req);
 
 returnType UpdateUser(CppHttp::Net::Request req);

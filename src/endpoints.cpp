@@ -24,6 +24,51 @@ std::variant<TokenError, json> ValidateToken(std::string& token) {
 	return tokenJson;
 }
 
+returnType GetUsers(CppHttp::Net::Request req) {
+	soci::session* sql = Database::GetInstance()->GetSession();
+	std::string token = req.m_info.headers["Authorization"];
+
+	auto tokenVariant = ValidateToken(token);
+
+	if (std::holds_alternative<TokenError>(tokenVariant)) {
+		TokenError error = std::get<TokenError>(tokenVariant);
+		return { error.type, error.message, {} };
+	}
+
+	json tokenJson = std::get<json>(tokenVariant);
+	std::string id = tokenJson["id"];
+
+	User user;
+	*sql << "SELECT * FROM users WHERE id=:id", soci::use(id), soci::into(user);
+
+	if (user.email.empty()) {
+		return { CppHttp::Net::ResponseType::NOT_FOUND, "User not found", {} };
+	}
+
+	std::transform(user.role.begin(), user.role.end(), user.role.begin(), ::toupper);
+
+	if (user.role != "ADMIN") {
+		return { CppHttp::Net::ResponseType::FORBIDDEN, "You do not have permission to access this resource", {} };
+	}
+
+	soci::rowset<User> users = (sql->prepare << "SELECT * FROM users");
+
+	json response = json::array();
+	for (auto& u : users) {
+		json user = {
+			{ "id", u.id },
+			{ "email", u.email },
+			{ "first_name", u.firstName },
+			{ "last_name", u.lastName },
+			{ "role", u.role }
+		};
+
+		response.push_back(user);
+	}
+
+	return { CppHttp::Net::ResponseType::JSON, response.dump(4), {} };
+}
+
 returnType GetUser(CppHttp::Net::Request req) {
 	soci::session* sql = Database::GetInstance()->GetSession();
 	std::string token = req.m_info.headers["Authorization"];
@@ -40,7 +85,7 @@ returnType GetUser(CppHttp::Net::Request req) {
 
 	User user;
 	*sql << "SELECT * FROM users WHERE id = :id", soci::use(id), soci::into(user);
-
+	
 	if (user.email.empty()) {
 		return { CppHttp::Net::ResponseType::NOT_FOUND, "User not found", {} };
 	}
