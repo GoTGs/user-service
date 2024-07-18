@@ -16,7 +16,7 @@ std::variant<TokenError, json> ValidateToken(std::string& token) {
 
 	if (ec) {
 		std::osyncstream(std::cout) << "\033[1;31m[-] Error: " << ec.message() << "\033[0m\n";
-		return TokenError{ CppHttp::Net::ResponseType::INTERNAL_ERROR, ec.message() };
+		return TokenError{ CppHttp::Net::ResponseType::NOT_AUTHORIZED, ec.message() };
 	}
 
 	auto tokenJson = decodedToken.get_payload_json();
