@@ -54,9 +54,12 @@ returnType GetUsers(CppHttp::Net::Request req) {
 		return { CppHttp::Net::ResponseType::FORBIDDEN, "You do not have permission to access this resource", {} };
 	}
 
-	Database::dbMutex.lock();
-	soci::rowset<User> users = (sql->prepare << "SELECT * FROM users");
-	Database::dbMutex.unlock();
+	std::vector<User> users;
+	{
+		std::lock_guard<std::mutex> lock(Database::dbMutex);
+		soci::rowset<User> rs = (sql->prepare << "SELECT * FROM users");
+		std::move(rs.begin(), rs.end(), std::back_inserter(users));
+	}
 
 	json response = json::array();
 	for (auto& u : users) {

@@ -2,6 +2,7 @@
 #include <thread>
 
 int main(int argc, char** argv) {
+	Database::GetInstance();
 	CppHttp::Net::Router router;
 	CppHttp::Net::TcpListener server;
 	server.CreateSocket();
