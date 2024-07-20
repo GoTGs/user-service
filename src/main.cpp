@@ -19,6 +19,7 @@ int main(int argc, char** argv) {
 	router.AddRoute("GET", "/user/get/all", GetUsers);
 	router.AddRoute("PUT", "/user/update", UpdateUser);
 	router.AddRoute("DELETE", "/user/delete", DeleteUser);
+	router.AddRoute("PUT", "/user/update/{id}", AdminUpdateUser);
 
 	server.Listen("0.0.0.0", 8001, std::thread::hardware_concurrency());
 

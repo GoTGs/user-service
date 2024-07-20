@@ -72,4 +72,6 @@ returnType GetUser(CppHttp::Net::Request req);
 
 returnType UpdateUser(CppHttp::Net::Request req);
 
+returnType AdminUpdateUser(CppHttp::Net::Request req);
+
 returnType DeleteUser(CppHttp::Net::Request req);
