@@ -39,7 +39,10 @@ returnType GetUsers(CppHttp::Net::Request req) {
 	std::string id = tokenJson["id"];
 
 	User user;
-	*sql << "SELECT * FROM users WHERE id=:id", soci::use(id), soci::into(user);
+	{
+		std::lock_guard<std::mutex> lock(Database::dbMutex);
+		*sql << "SELECT * FROM users WHERE id=:id", soci::use(id), soci::into(user);
+	}
 
 	if (user.email.empty()) {
 		return { CppHttp::Net::ResponseType::NOT_FOUND, "User not found", {} };
@@ -51,7 +54,9 @@ returnType GetUsers(CppHttp::Net::Request req) {
 		return { CppHttp::Net::ResponseType::FORBIDDEN, "You do not have permission to access this resource", {} };
 	}
 
+	Database::dbMutex.lock();
 	soci::rowset<User> users = (sql->prepare << "SELECT * FROM users");
+	Database::dbMutex.unlock();
 
 	json response = json::array();
 	for (auto& u : users) {
@@ -84,7 +89,10 @@ returnType GetUser(CppHttp::Net::Request req) {
 	std::string id = tokenJson["id"];
 
 	User user;
-	*sql << "SELECT * FROM users WHERE id = :id", soci::use(id), soci::into(user);
+	{
+		std::lock_guard<std::mutex> lock(Database::dbMutex);
+		*sql << "SELECT * FROM users WHERE id = :id", soci::use(id), soci::into(user);
+	}
 	
 	if (user.email.empty()) {
 		return { CppHttp::Net::ResponseType::NOT_FOUND, "User not found", {} };
@@ -116,7 +124,10 @@ returnType UpdateUser(CppHttp::Net::Request req) {
 	std::string id = tokenJson["id"];
 
 	User user;
-	*sql << "SELECT * FROM users WHERE id = :id", soci::use(id), soci::into(user);
+	{
+		std::lock_guard<std::mutex> lock(Database::dbMutex);
+		*sql << "SELECT * FROM users WHERE id = :id", soci::use(id), soci::into(user);
+	}
 
 	if (user.email.empty()) {
 		return { CppHttp::Net::ResponseType::NOT_FOUND, "User not found", {} };
@@ -168,7 +179,10 @@ returnType UpdateUser(CppHttp::Net::Request req) {
 		user.password = Hash(password + user.salt);
 	}
 
-	*sql << "UPDATE users SET email = :email, first_name = :first_name, last_name = :last_name, password = :password WHERE id = :id", soci::use(user.email), soci::use(user.firstName), soci::use(user.lastName), soci::use(user.password), soci::use(user.id);
+	{
+		std::lock_guard<std::mutex> lock(Database::dbMutex);
+		*sql << "UPDATE users SET email = :email, first_name = :first_name, last_name = :last_name, password = :password WHERE id = :id", soci::use(user.email), soci::use(user.firstName), soci::use(user.lastName), soci::use(user.password), soci::use(user.id);
+	}
 
 	json response = {
 		{ "id", user.id },
@@ -196,13 +210,19 @@ returnType DeleteUser(CppHttp::Net::Request req) {
 	std::string id = tokenJson["id"];
 
 	User user;
-	*sql << "SELECT * FROM users WHERE id = :id", soci::use(id), soci::into(user);
+	{
+		std::lock_guard<std::mutex> lock(Database::dbMutex);
+		*sql << "SELECT * FROM users WHERE id = :id", soci::use(id), soci::into(user);
+	}
 
 	if (user.email.empty()) {
 		return { CppHttp::Net::ResponseType::NOT_FOUND, "User not found", {} };
 	}
 
-	*sql << "DELETE FROM users WHERE id = :id", soci::use(user.id);
+	{
+		std::lock_guard<std::mutex> lock(Database::dbMutex);
+		*sql << "DELETE FROM users WHERE id = :id", soci::use(user.id);
+	}
 
 	json response = {
 		{ "id", user.id },
